@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mi entrenamiento · PAES M2</title>
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">M2</div>
+      <div>PAES M2<small>ENTRENADOR</small></div>
+    </div>
+
+    <a class="nav-item active" href="/pages/student.html">Mi entrenamiento</a>
+    <a class="nav-item" href="#">Practicar por contenido</a>
+    <a class="nav-item" href="#">Practicar debilidades</a>
+    <a class="nav-item" href="#">Ensayos</a>
+    <a class="nav-item" href="#">Mapa de habilidades</a>
+    <a class="nav-item" href="#">Estadísticas</a>
+
+    <div class="nav-footer">
+      <div id="userBadge" class="loading-line">Cargando sesión…</div>
+      <button class="btn btn-ghost btn-block" id="logoutBtn" style="margin-top:12px;">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="page-header">
+      <div>
+        <h1>Hola 👋</h1>
+        <div class="subtitle" id="welcomeLine">Preparando tu panel…</div>
+      </div>
+      <span class="pill"><span class="pill-dot"></span> Puntaje estimado: —</span>
+    </div>
+
+    <div class="empty-state">
+      <h3>Todavía no hay preguntas cargadas</h3>
+      <p>
+        En cuanto el administrador suba el primer ensayo y la IA lo analice,
+        aquí aparecerán tus preguntas recomendadas según tu nivel.
+      </p>
+      <button class="btn btn-primary" disabled>Practicar (próximamente)</button>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { requireAuth, logout } from "/js/auth.js";
+
+  const user = await requireAuth({ role: "student" });
+  document.getElementById("userBadge").textContent = user.displayName || user.email;
+  document.getElementById("userBadge").classList.remove("loading-line");
+  document.getElementById("welcomeLine").textContent =
+    `Sesión activa: ${user.email}`;
+
+  document.getElementById("logoutBtn").addEventListener("click", logout);
+</script>
+
+</body>
+</html>

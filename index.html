@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PAES M2 · Entrenador Inteligente</title>
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+
+<div class="auth-shell">
+
+  <header class="auth-topbar">
+    <div class="brand">
+      <div class="brand-mark">M2</div>
+      <div>
+        PAES M2
+        <small>ENTRENADOR&nbsp;INTELIGENTE</small>
+      </div>
+    </div>
+    <span class="pill"><span class="pill-dot"></span> Beta</span>
+  </header>
+
+  <main class="auth-main">
+
+    <!-- Signature element: la ecuación se transforma paso a paso,
+         anticipando el motor de explicaciones del producto. -->
+    <section class="hero-equation" id="heroEquation" aria-hidden="true">
+      <div class="hero-eyebrow">Así explica el entrenador</div>
+      <div id="eqLines"></div>
+      <p class="hero-caption">
+        Cada error se convierte en una <strong>explicación paso a paso</strong>,
+        no en una respuesta correcta memorizada. El entrenador detecta el tipo de
+        error — signos, factorización, interpretación — y construye la ruta de
+        vuelta al concepto.
+      </p>
+    </section>
+
+    <!-- Auth card -->
+    <section class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" type="button">Ingresar</button>
+        <button class="auth-tab" id="tabRegister" type="button">Crear cuenta</button>
+      </div>
+
+      <!-- LOGIN -->
+      <form id="loginForm">
+        <h2>Bienvenido de vuelta</h2>
+        <p class="subtitle">Continúa donde quedaste tu preparación PAES M2.</p>
+
+        <div class="field">
+          <label for="loginEmail">Correo</label>
+          <input id="loginEmail" type="email" required autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="loginPassword">Contraseña</label>
+          <input id="loginPassword" type="password" required autocomplete="current-password" />
+        </div>
+        <div class="error-msg" id="loginError"></div>
+        <button class="btn btn-primary btn-block" type="submit">Ingresar</button>
+      </form>
+
+      <!-- REGISTER -->
+      <form id="registerForm" style="display:none;">
+        <h2>Crea tu cuenta</h2>
+        <p class="subtitle">Empieza a entrenar con retroalimentación inteligente.</p>
+
+        <div class="field">
+          <label for="registerName">Nombre</label>
+          <input id="registerName" type="text" required autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="registerEmail">Correo</label>
+          <input id="registerEmail" type="email" required autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="registerPassword">Contraseña</label>
+          <input id="registerPassword" type="password" required minlength="6" autocomplete="new-password" />
+        </div>
+        <div class="error-msg" id="registerError"></div>
+        <button class="btn btn-primary btn-block" type="submit">Crear cuenta</button>
+      </form>
+
+      <div class="auth-divider">PAES M2 · Matemática</div>
+    </section>
+
+  </main>
+</div>
+
+<script type="module">
+  import { login, registerStudent, redirectByRole } from "/js/auth.js";
+
+  // ---- Tabs ----
+  const tabLogin = document.getElementById("tabLogin");
+  const tabRegister = document.getElementById("tabRegister");
+  const loginForm = document.getElementById("loginForm");
+  const registerForm = document.getElementById("registerForm");
+
+  tabLogin.addEventListener("click", () => {
+    tabLogin.classList.add("active");
+    tabRegister.classList.remove("active");
+    loginForm.style.display = "block";
+    registerForm.style.display = "none";
+  });
+  tabRegister.addEventListener("click", () => {
+    tabRegister.classList.add("active");
+    tabLogin.classList.remove("active");
+    registerForm.style.display = "block";
+    loginForm.style.display = "none";
+  });
+
+  // ---- Login ----
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+    const errorEl = document.getElementById("loginError");
+    errorEl.textContent = "";
+
+    try {
+      const { role } = await login(email, password);
+      redirectByRole(role);
+    } catch (err) {
+      errorEl.textContent = friendlyAuthError(err.code);
+    }
+  });
+
+  // ---- Register ----
+  registerForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("registerName").value.trim();
+    const email = document.getElementById("registerEmail").value.trim();
+    const password = document.getElementById("registerPassword").value;
+    const errorEl = document.getElementById("registerError");
+    errorEl.textContent = "";
+
+    try {
+      const { role } = await registerStudent(email, password, name);
+      redirectByRole(role);
+    } catch (err) {
+      errorEl.textContent = friendlyAuthError(err.code);
+    }
+  });
+
+  function friendlyAuthError(code) {
+    const map = {
+      "auth/email-already-in-use": "Ese correo ya tiene una cuenta. Intenta ingresar.",
+      "auth/invalid-email": "Revisa el formato del correo.",
+      "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
+      "auth/user-not-found": "No encontramos una cuenta con ese correo.",
+      "auth/wrong-password": "Contraseña incorrecta.",
+      "auth/invalid-credential": "Correo o contraseña incorrectos.",
+    };
+    return map[code] || "Ocurrió un problema. Intenta de nuevo.";
+  }
+
+  // ---- Hero equation animation (decorative, respects reduced motion) ----
+  const sequences = [
+    ["x^2 - 9 = 0", "x^2 = 9", "x = \u00b13"],
+    ["\\log_2(x) = 5", "x = 2^5", "x = 32"],
+    ["f(x) = 2x + 1,\\ f(3)", "f(3) = 2(3) + 1", "f(3) = 7"],
+  ];
+
+  const container = document.getElementById("eqLines");
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function renderSequence(lines) {
+    container.innerHTML = "";
+    lines.forEach((line, i) => {
+      if (i > 0) {
+        const arrow = document.createElement("div");
+        arrow.className = "eq-arrow";
+        arrow.textContent = "\u2193";
+        container.appendChild(arrow);
+      }
+      const div = document.createElement("div");
+      div.className = "eq-line";
+      div.textContent = line;
+      container.appendChild(div);
+    });
+  }
+
+  async function playSequence(lines) {
+    renderSequence(lines);
+    const nodes = container.children;
+    for (let i = 0; i < nodes.length; i++) {
+      nodes[i].classList.add("active");
+      if (i === nodes.length - 1) nodes[i].classList.add("solved");
+      if (!prefersReducedMotion) await sleep(650);
+    }
+    await sleep(prefersReducedMotion ? 0 : 1800);
+  }
+
+  function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+  async function loop() {
+    let i = 0;
+    while (true) {
+      await playSequence(sequences[i % sequences.length]);
+      i++;
+      if (prefersReducedMotion) break; // muestra una sola vez y se detiene
+    }
+  }
+  loop();
+</script>
+
+</body>
+</html>
