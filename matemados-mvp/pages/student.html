@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi entrenamiento · Matemados M2</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">M2</div>
+      <div>MATEMADOS<small>ENTRENADOR ADAPTATIVO</small></div>
+    </div>
+
+    <button class="nav-item active" data-student-view="inicio">Mi entrenamiento</button>
+    <button class="nav-item" data-student-view="contenido">Practicar por contenido</button>
+    <button class="nav-item" data-student-view="debilidades">Practicar debilidades</button>
+    <button class="nav-item" data-student-view="ensayo">Miniensayo</button>
+    <button class="nav-item" data-student-view="habilidades">Mapa de habilidades</button>
+    <button class="nav-item" data-student-view="estadisticas">Estadísticas</button>
+
+    <div class="nav-footer">
+      <div id="userBadge" class="loading-line">Cargando sesión…</div>
+      <button class="btn btn-ghost btn-block" id="logoutBtn" type="button">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <button class="mobile-menu-btn" id="mobileMenuBtn" type="button">Menú</button>
+
+    <header class="page-header">
+      <div>
+        <h1 id="pageTitle">Mi entrenamiento</h1>
+        <div class="subtitle" id="welcomeLine">Preparando tu panel…</div>
+      </div>
+      <span class="pill" title="Estimación interna de entrenamiento; no corresponde a una conversión oficial DEMRE."><span class="pill-dot"></span> Puntaje estimado: <strong id="scorePill">—</strong></span>
+    </header>
+
+    <section class="student-view active" data-student-panel="inicio">
+      <div class="stats-grid">
+        <article class="stat-card"><span>Dominio global</span><strong id="masteryStat">—</strong><small>rendimiento ponderado</small></article>
+        <article class="stat-card"><span>Respuestas</span><strong id="attemptsStat">0</strong><small>intentos registrados</small></article>
+        <article class="stat-card"><span>Precisión</span><strong id="accuracyStat">—</strong><small>últimos intentos</small></article>
+        <article class="stat-card"><span>Racha</span><strong id="streakStat">0</strong><small>correctas consecutivas</small></article>
+      </div>
+
+      <div class="dashboard-grid dashboard-grid-main">
+        <article class="card accent-card recommendation-card">
+          <div class="card-kicker">Sesión recomendada</div>
+          <h2 id="recommendationTitle">Diagnóstico inicial</h2>
+          <p id="recommendationText">Comienza con una sesión mixta para que el entrenador detecte fortalezas y debilidades.</p>
+          <button class="btn btn-primary" id="startRecommendedBtn" type="button">Comenzar 10 preguntas</button>
+        </article>
+
+        <article class="card">
+          <div class="card-kicker">Progreso por eje</div>
+          <div id="axisProgress" class="progress-list"></div>
+        </article>
+      </div>
+
+      <article class="card section-card">
+        <div class="section-heading compact-heading"><div><div class="card-kicker">Continuidad</div><h2>Últimos intentos</h2></div></div>
+        <div id="recentAttempts" class="attempt-list"></div>
+      </article>
+    </section>
+
+    <section class="student-view" data-student-panel="contenido">
+      <article class="card setup-card">
+        <div class="card-kicker">Entrenamiento dirigido</div>
+        <h2>Practicar por contenido</h2>
+        <p>Elige un eje y, opcionalmente, una unidad específica.</p>
+        <div class="form-grid">
+          <div class="field"><label for="contentAxis">Eje</label><select id="contentAxis"></select></div>
+          <div class="field"><label for="contentUnit">Unidad</label><select id="contentUnit" disabled></select></div>
+        </div>
+        <div class="field"><label for="contentLength">Cantidad</label><select id="contentLength"><option value="5">5 preguntas</option><option value="10" selected>10 preguntas</option><option value="15">15 preguntas</option></select></div>
+        <div class="error-msg" id="contentError"></div>
+        <button class="btn btn-primary" id="startContentBtn" type="button">Iniciar práctica</button>
+      </article>
+    </section>
+
+    <section class="student-view" data-student-panel="debilidades">
+      <article class="card setup-card">
+        <div class="card-kicker">Práctica adaptativa</div>
+        <h2>Atacar mis debilidades</h2>
+        <p id="weaknessDescription">Analizando tus intentos para priorizar los conceptos con menor dominio.</p>
+        <div id="weakUnits" class="chip-list"></div>
+        <button class="btn btn-primary" id="startWeaknessBtn" type="button">Entrenar debilidades</button>
+      </article>
+    </section>
+
+    <section class="student-view" data-student-panel="ensayo">
+      <article class="card setup-card">
+        <div class="card-kicker">Simulación breve</div>
+        <h2>Miniensayo M2</h2>
+        <p>20 preguntas mezcladas entre ejes y habilidades. La versión completa de 55 preguntas se habilitará cuando el banco tenga suficiente cobertura.</p>
+        <button class="btn btn-primary" id="startExamBtn" type="button">Comenzar miniensayo</button>
+      </article>
+    </section>
+
+    <section class="student-view" data-student-panel="habilidades">
+      <div class="section-heading"><div><div class="card-kicker">Diagnóstico</div><h2>Mapa de habilidades</h2><p>Se actualiza según tus respuestas, dificultad y cantidad de evidencia.</p></div></div>
+      <div id="skillMap" class="skill-map"></div>
+    </section>
+
+    <section class="student-view" data-student-panel="estadisticas">
+      <div class="stats-grid">
+        <article class="stat-card"><span>Correctas</span><strong id="correctStat">0</strong><small>acumuladas</small></article>
+        <article class="stat-card"><span>Incorrectas</span><strong id="incorrectStat">0</strong><small>por reforzar</small></article>
+        <article class="stat-card"><span>Tiempo medio</span><strong id="avgTimeStat">—</strong><small>por pregunta</small></article>
+        <article class="stat-card"><span>Unidades vistas</span><strong id="unitsSeenStat">0</strong><small>del temario</small></article>
+      </div>
+      <article class="card section-card"><div class="card-kicker">Detalle por unidad</div><div id="unitStats" class="table-like"></div></article>
+    </section>
+
+    <section id="practiceRunner" class="practice-runner" hidden>
+      <div class="runner-topbar">
+        <button class="btn btn-ghost" id="quitSessionBtn" type="button">Salir</button>
+        <div class="runner-progress"><span id="runnerLabel">Pregunta 1 de 10</span><div class="progress-track"><div id="runnerProgressBar" class="progress-fill"></div></div></div>
+        <div class="mono" id="sessionScore">0 correctas</div>
+      </div>
+      <article class="question-card" id="questionCard"></article>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script type="module" src="/js/student.js"></script>
+</body>
+</html>

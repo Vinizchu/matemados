@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Administración · Matemados M2</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">M2</div>
+      <div>MATEMADOS<small>ADMINISTRACIÓN</small></div>
+    </div>
+
+    <button class="nav-item active" data-admin-tab="resumen">Resumen</button>
+    <button class="nav-item" data-admin-tab="materiales">Materiales e IA</button>
+    <button class="nav-item" data-admin-tab="crear">Crear pregunta</button>
+    <button class="nav-item" data-admin-tab="banco">Banco de preguntas</button>
+
+    <div class="nav-footer">
+      <div id="userBadge" class="loading-line">Cargando sesión…</div>
+      <button class="btn btn-ghost btn-block" id="logoutBtn" type="button">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <button class="mobile-menu-btn" id="mobileMenuBtn" type="button">Menú</button>
+
+    <header class="page-header">
+      <div>
+        <h1>Panel de administración</h1>
+        <div class="subtitle" id="welcomeLine">Preparando panel…</div>
+      </div>
+      <span class="pill"><span class="pill-dot"></span> Acceso administrador</span>
+    </header>
+
+    <section class="admin-panel active" data-admin-panel="resumen">
+      <div class="stats-grid">
+        <article class="stat-card"><span>Materiales</span><strong id="statMaterials">0</strong><small>ensayos subidos</small></article>
+        <article class="stat-card"><span>Preguntas</span><strong id="statQuestions">0</strong><small>en el banco</small></article>
+        <article class="stat-card"><span>Publicadas</span><strong id="statPublished">0</strong><small>visibles para estudiantes</small></article>
+        <article class="stat-card"><span>Pendientes</span><strong id="statPending">0</strong><small>por analizar o revisar</small></article>
+      </div>
+
+      <div class="dashboard-grid">
+        <article class="card accent-card">
+          <div class="card-kicker">Siguiente paso recomendado</div>
+          <h2>Prueba el ciclo completo</h2>
+          <p>Agrega el banco de demostración, publica preguntas y entra como estudiante para comprobar la práctica adaptativa.</p>
+          <button class="btn btn-primary" id="seedBtn" type="button">Agregar 15 preguntas demo</button>
+          <div class="inline-status" id="seedStatus"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-kicker">Pipeline</div>
+          <h2>Ensayo → preguntas revisables</h2>
+          <ol class="pipeline-list">
+            <li><span>1</span>Subir varios PDF o imágenes.</li>
+            <li><span>2</span>Analizar con IA y clasificar por temario.</li>
+            <li><span>3</span>Revisar explicaciones y publicar.</li>
+            <li><span>4</span>Usar los intentos para adaptar la práctica.</li>
+          </ol>
+        </article>
+      </div>
+    </section>
+
+    <section class="admin-panel" data-admin-panel="materiales">
+      <article class="card section-card">
+        <div class="section-heading">
+          <div>
+            <div class="card-kicker">Ingesta de contenido</div>
+            <h2>Subir ensayos</h2>
+            <p>Selecciona varios PDF, PNG, JPG o WEBP. Límite: 20 MB por archivo.</p>
+          </div>
+        </div>
+
+        <div class="upload-zone">
+          <div class="field field-grow">
+            <label for="fileInput">Archivos</label>
+            <input id="fileInput" type="file" multiple accept=".pdf,image/png,image/jpeg,image/webp" />
+          </div>
+          <button class="btn btn-primary" id="uploadBtn" type="button">Subir archivos</button>
+        </div>
+        <div class="error-msg" id="uploadError"></div>
+        <div class="upload-progress" id="uploadStatus"></div>
+      </article>
+
+      <div class="section-heading compact-heading">
+        <div>
+          <div class="card-kicker">Cola de procesamiento</div>
+          <h2>Materiales</h2>
+        </div>
+      </div>
+      <div id="materialesList" class="stack-list">
+        <div class="empty-state"><h3>Aún no hay materiales</h3><p>Sube uno o más ensayos para iniciar el pipeline de análisis.</p></div>
+      </div>
+    </section>
+
+    <section class="admin-panel" data-admin-panel="crear">
+      <article class="card section-card">
+        <div class="section-heading">
+          <div>
+            <div class="card-kicker">Autoría manual</div>
+            <h2>Nueva pregunta</h2>
+            <p>Sirve para corregir extracciones de la IA o crear ejercicios propios.</p>
+          </div>
+        </div>
+
+        <form id="questionForm">
+          <div class="field">
+            <label for="questionText">Enunciado — admite LaTeX entre $...$</label>
+            <textarea id="questionText" rows="4" required placeholder="Ej.: Si $2^x=16$, ¿cuál es el valor de $x$?"></textarea>
+          </div>
+
+          <div class="alternatives-grid">
+            <div class="field"><label for="altA">Alternativa A</label><input id="altA" required /></div>
+            <div class="field"><label for="altB">Alternativa B</label><input id="altB" required /></div>
+            <div class="field"><label for="altC">Alternativa C</label><input id="altC" required /></div>
+            <div class="field"><label for="altD">Alternativa D</label><input id="altD" required /></div>
+            <div class="field"><label for="altE">Alternativa E (opcional)</label><input id="altE" /></div>
+          </div>
+
+          <div class="form-grid form-grid-4">
+            <div class="field"><label for="correctAnswer">Correcta</label><select id="correctAnswer" required><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option></select></div>
+            <div class="field"><label for="axisSelect">Eje</label><select id="axisSelect" required></select></div>
+            <div class="field"><label for="unitSelect">Unidad</label><select id="unitSelect" required disabled></select></div>
+            <div class="field"><label for="skillSelect">Habilidad</label><select id="skillSelect" required></select></div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field"><label for="difficulty">Dificultad</label><select id="difficulty"><option value="1">1 · Inicial</option><option value="2">2 · Baja</option><option value="3" selected>3 · Media</option><option value="4">4 · Alta</option><option value="5">5 · Desafío</option></select></div>
+            <div class="field"><label for="sourceName">Fuente</label><input id="sourceName" placeholder="Creación propia" /></div>
+          </div>
+
+          <div class="field"><label for="explanation">Explicación conceptual</label><textarea id="explanation" rows="3" required></textarea></div>
+          <div class="field"><label for="steps">Pasos — uno por línea</label><textarea id="steps" rows="4" required></textarea></div>
+          <div class="field"><label for="commonError">Error común que diagnostica</label><textarea id="commonError" rows="2"></textarea></div>
+
+          <label class="check-row"><input type="checkbox" id="publishNow" /> Publicar inmediatamente</label>
+          <div class="error-msg" id="questionError"></div>
+          <button class="btn btn-primary" type="submit" id="saveQuestionBtn">Guardar pregunta</button>
+          <span class="inline-status" id="questionStatus"></span>
+        </form>
+      </article>
+    </section>
+
+    <section class="admin-panel" data-admin-panel="banco">
+      <div class="section-heading">
+        <div>
+          <div class="card-kicker">Control editorial</div>
+          <h2>Banco de preguntas</h2>
+          <p>Las preguntas extraídas por IA llegan como borrador para evitar publicar errores automáticamente.</p>
+        </div>
+      </div>
+
+      <div class="toolbar card">
+        <input id="questionSearch" type="search" placeholder="Buscar por enunciado, eje o unidad" />
+        <select id="questionStatusFilter"><option value="all">Todas</option><option value="published">Publicadas</option><option value="draft">Borradores</option></select>
+      </div>
+      <div id="questionsList" class="stack-list"></div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script type="module" src="/js/admin.js"></script>
+</body>
+</html>

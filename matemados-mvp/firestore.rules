@@ -1,0 +1,63 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function bootstrapAdmin() {
+      return signedIn()
+        && request.auth.token.email == "vicentebasoalto2@gmail.com"
+        && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == "admin";
+    }
+
+    match /usuarios/{uid} {
+      allow create: if isOwner(uid)
+        && request.resource.data.email == request.auth.token.email
+        && (
+          request.resource.data.role == "student"
+          || (bootstrapAdmin() && request.resource.data.role == "admin")
+        );
+
+      allow read: if isOwner(uid) || isAdmin();
+
+      allow update: if isAdmin()
+        || (bootstrapAdmin()
+          && isOwner(uid)
+          && request.resource.data.role == "admin"
+          && request.resource.data.email == resource.data.email)
+        || (isOwner(uid)
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.email == resource.data.email);
+
+      allow delete: if isAdmin();
+
+      match /intentos/{intentoId} {
+        allow create: if isOwner(uid)
+          && request.resource.data.preguntaId is string
+          && request.resource.data.correcta is bool;
+        allow read: if isOwner(uid) || isAdmin();
+        allow update, delete: if false;
+      }
+    }
+
+    match /preguntas/{preguntaId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.publicada == true);
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /materiales/{materialId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+  }
+}
