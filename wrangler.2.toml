@@ -1,0 +1,15 @@
+name = "MATEMADOS-0.01"
+compatibility_date = "2026-07-01"
+pages_build_output_dir = "."
+
+# Variables de entorno no sensibles. También se pueden definir desde
+# el dashboard: Workers & Pages > tu proyecto > Settings > Environment variables.
+#
+# SUPABASE_SERVICE_ROLE_KEY NO va aquí: es secreta y se configura por
+# separado (dashboard, marcada como "Secret", o con:
+#   npx wrangler pages secret put SUPABASE_SERVICE_ROLE_KEY
+# ) para que nunca quede committeada en el repositorio.
+[vars]
+FIREBASE_PROJECT_ID = "nurqpfpatxxewcetzdvt"
+ADMIN_EMAILS = "vicentebasoalto2@gmail.com"
+SUPABASE_URL = "https://nurqpfpatxxewcetzdvt.supabase.co"
