@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel de administración · PAES M2</title>
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">M2</div>
+      <div>PAES M2<small>ADMIN</small></div>
+    </div>
+
+    <a class="nav-item active" href="/pages/admin.html">Resumen</a>
+    <a class="nav-item" href="#">Subir ensayos</a>
+    <a class="nav-item" href="#">Materiales en análisis</a>
+    <a class="nav-item" href="#">Banco de preguntas</a>
+    <a class="nav-item" href="#">Base de conocimientos</a>
+
+    <div class="nav-footer">
+      <div id="userBadge" class="loading-line">Cargando sesión…</div>
+      <button class="btn btn-ghost btn-block" id="logoutBtn" style="margin-top:12px;">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="page-header">
+      <div>
+        <h1>Panel de administración</h1>
+        <div class="subtitle" id="welcomeLine">Preparando panel…</div>
+      </div>
+      <span class="pill"><span class="pill-dot"></span> Acceso admin</span>
+    </div>
+
+    <div class="card" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 4px;">Subir ensayo</h3>
+      <p class="subtitle" style="margin-bottom: 18px;">
+        PDF o imágenes (PNG, JPG, WEBP) — máximo 20 MB por archivo.
+      </p>
+
+      <div class="field">
+        <label for="fileInput">Archivo</label>
+        <input id="fileInput" type="file" accept=".pdf,image/png,image/jpeg,image/webp" />
+      </div>
+
+      <div class="error-msg" id="uploadError"></div>
+
+      <button class="btn btn-primary" id="uploadBtn" type="button">Subir</button>
+      <span class="loading-line" id="uploadStatus" style="margin-left: 12px;"></span>
+    </div>
+
+    <div id="materialesList">
+      <div class="empty-state" id="emptyState">
+        <h3>Aún no hay materiales subidos</h3>
+        <p>
+          Sube el primer ensayo en PDF o imágenes para que la IA lo analice:
+          detección de preguntas, alternativas, gráficos y clasificación por
+          temario oficial PAES M2.
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { requireAuth, logout } from "/js/auth.js";
+  import { auth, db } from "/js/firebase-config.js";
+  import {
+    collection,
+    addDoc,
+    query,
+    orderBy,
+    onSnapshot,
+    serverTimestamp,
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+  const user = await requireAuth({ role: "admin" });
+  document.getElementById("userBadge").textContent = user.displayName || user.email;
+  document.getElementById("userBadge").classList.remove("loading-line");
+  document.getElementById("welcomeLine").textContent = `Sesión activa: ${user.email}`;
+  document.getElementById("logoutBtn").addEventListener("click", logout);
+
+  // ---- Subida de archivos ----
+  const fileInput = document.getElementById("fileInput");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const uploadError = document.getElementById("uploadError");
+  const uploadStatus = document.getElementById("uploadStatus");
+
+  uploadBtn.addEventListener("click", async () => {
+    const file = fileInput.files[0];
+    uploadError.textContent = "";
+
+    if (!file) {
+      uploadError.textContent = "Elige un archivo primero.";
+      return;
+    }
+
+    uploadBtn.disabled = true;
+    uploadStatus.textContent = "Subiendo…";
+
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/materiales", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Error al subir el archivo");
+
+      // Registrar el material en Firestore para que quede en la cola de análisis.
+      await addDoc(collection(db, "materiales"), {
+        nombre: result.name,
+        r2Key: result.key,
+        contentType: result.contentType,
+        tamano: result.size,
+        estado: "pendiente_analisis",
+        subidoPorUid: user.uid,
+        subidoPorEmail: user.email,
+        subidoEn: serverTimestamp(),
+        preguntasExtraidas: [],
+      });
+
+      uploadStatus.textContent = "¡Listo! Se agregó a la cola de análisis.";
+      fileInput.value = "";
+    } catch (err) {
+      uploadError.textContent = err.message;
+      uploadStatus.textContent = "";
+    } finally {
+      uploadBtn.disabled = false;
+    }
+  });
+
+  // ---- Lista de materiales en tiempo real ----
+  const materialesList = document.getElementById("materialesList");
+  const emptyState = document.getElementById("emptyState");
+
+  const estadoLabel = {
+    pendiente_analisis: "Pendiente de análisis",
+    analizando: "Analizando",
+    analizado: "Analizado",
+    error: "Error en el análisis",
+  };
+
+  const q = query(collection(db, "materiales"), orderBy("subidoEn", "desc"));
+  onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) {
+      emptyState.style.display = "block";
+      return;
+    }
+    emptyState.style.display = "none";
+
+    materialesList.innerHTML = snapshot.docs
+      .map((docSnap) => {
+        const m = docSnap.data();
+        return `
+          <div class="card" style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:600;">${m.nombre}</div>
+              <div class="subtitle mono" style="font-size:12px;">${m.contentType} · ${(m.tamano / 1024).toFixed(0)} KB</div>
+            </div>
+            <span class="pill"><span class="pill-dot"></span> ${estadoLabel[m.estado] || m.estado}</span>
+          </div>
+        `;
+      })
+      .join("");
+  });
+</script>
+
+</body>
+</html>

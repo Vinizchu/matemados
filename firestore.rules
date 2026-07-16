@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // Cada estudiante lee/edita solo su propio perfil. Los admins leen todos.
+    match /usuarios/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // El banco de preguntas lo gestiona solo el admin; cualquier usuario
+    // autenticado puede leerlo para practicar.
+    match /preguntas/{preguntaId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Los materiales subidos (PDFs, ensayos) son solo del admin.
+    match /materiales/{materialId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
